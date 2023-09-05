@@ -1,14 +1,15 @@
-FROM ubuntu:latest
+FROM google/cloud-sdk:slim
 
 # Install dependencies
 RUN apt update  -y
-RUN apt install -y openjdk-19-jdk-headless 
+RUN apt install -y openjdk-17-jdk-headless
 
 # Install Minecraft
-RUN mkdir /minecraft
 COPY minecraft minecraft
 WORKDIR minecraft
 
 # Start
-CMD java -Xmx1024M -Xms1024M -jar minecraft_server.1.20.1.jar nogui
+ENTRYPOINT ["/bin/sh", "/minecraft/start.sh"]
+
+
 
