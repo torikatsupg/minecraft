@@ -1,13 +1,12 @@
 #!/bin/sh
 
-# Restore buckup files
-if [ -z "${GOOGLE_APPLICATION_CREDENTIALS}" ]; then
-  echo "launch on local"
-  gcloud auth activate-service-account --key-file=/tmp/credentials.json
-fi
+BACKUP_FILENAME="backup.tar.gz"
+REMOTE_BACKUP_PATH="s3://torikatsu-minecraft-backup/$BACKUP_FILENAME"
 
-gcloud storage cp -r 'gs://katz_minecraft_backup/*' .
-
+# Restore backup
+# FIXME
+aws s3 cp "$REMOTE_BACKUP_PATH" .
+tar xzf "$BACKUP_FILENAME"
 
 on_exit() {
   echo "backup"
@@ -15,25 +14,19 @@ on_exit() {
     kill "$MC_PID"
   fi
 
-  gcloud storage cp -r \
-      libraries \
-      versions \
-      world \
-      banned-ips.json \
-      banned-players.json \
-      ops.json \
-      usercache.json \
-      whitelist.json \
-      'gs://katz_minecraft_backup'
-
+  sh ./backup.sh
   exit 0
-
 }
 trap 'on_exit' TERM
+trap 'on_exit' INT
 
 # Start Minecraft server
-java -Xmx1024M -Xms1024M -jar minecraft_server.1.20.1.jar nogui &
+java -Xmx1024M -Xms1024M -jar minecraft_server.1.20.2.jar nogui &
 MC_PID=$!
-echo "minecraft_server pid: " $MC_PID
+echo "minecraft_server pid: " "$MC_PID"
+
+# Start scheduled jobs
+env | sed 's/^\(.*\)$/export \1/g' > /etc/environment
+service cron start
 
 wait
