@@ -12,12 +12,11 @@ COPY crontab /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab
 RUN crontab /etc/cron.d/crontab
 
-
 # Install Minecraft
-COPY minecraft minecraft
-WORKDIR minecraft
+COPY start.sh /start.sh
+COPY backup.sh /backup.sh
 
+WORKDIR /
 EXPOSE 25565
 
-# Start
-ENTRYPOINT ["/bin/sh", "/minecraft/start.sh"]
+ENTRYPOINT ["/bin/sh", "/start.sh"]
